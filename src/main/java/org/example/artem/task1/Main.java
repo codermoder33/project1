@@ -1,96 +1,136 @@
+
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class Main{
+/*
+*  промежуточные:
+*  filter
+*  map
+*  distinct
+*  boxed
+*  sorted
+*  range
+*
+*  терминальные:
+*  forEach
+*  allMath
+*  anyMatch
+*  reduce
+*
+*  создание стримов:
+*  Arrays.stream()
+*  list.stream()
+*  IntStream.
+*
+*  Optinal:
+*  Optional.of()
+*  Optional.empty()
+*  Optional<String> o
+*  o.map().orElse()
+*
+* stream api методы:
+* reduce
+*
+*/
 
- public static void main(String[] args) {
-        Random randomObject = new Random();
+
+public class Main {
+    static Random randomObject = new Random();
+
+
+    public static void main(String[] args) {
+
         int[] IntegerMass = new int[10_000];
-        for(int g=0;g<IntegerMass.length;g++){
-            IntegerMass[g]=randomObject.nextInt(60);
-        }
-        Arrays
-         .stream(IntegerMass)
-         .filter(a->a%2==0)
-         .map(a->a*2)
-         .distinct()
-         .forEach(System.out::println);       // вывели четные уникальные числа умноженные на 2
 
-        if(Arrays
-         .stream(IntegerMass)
-         .allMatch(a->a==0)){
-           System.out.println("невероятный случай");
+        IntegerMass = fillMassWithRandomNums(IntegerMass);
+
+        Arrays.stream(IntegerMass)
+                .filter(a->a%2==0)
+                .map(a->a*2)
+                .distinct()
+                .forEach(System.out::println);       // вывели четные уникальные числа умноженные на 2
+
+        if(Arrays.stream(IntegerMass)
+                .allMatch(a->a==0)){
+            System.out.println("невероятный случай");
         }
-        if(Arrays
-         .stream(IntegerMass)
-         .anyMatch(a->a==0)){ 
+        if(Arrays.stream(IntegerMass)
+                .anyMatch(a->a==0)){
             System.out.println("обычный случай");
         }
 
-        System.out.println(Arrays
-          .stream(IntegerMass)
-          .reduce((a,e)->a*e)
-          .getAsInt());         // вывели произведение всех чисел
+        System.out.println(Arrays.stream(IntegerMass)
+                .reduce((a,e)->a*e)
+                .getAsInt());         // вывели произведение всех чисел
 
-        Map<Boolean,List<Integer>> mapOfNumberTypes = Arrays
-          .stream(IntegerMass)
-          .boxed()
-          .collect(Collectors.partitioningBy(a->a%2==0));    // разделили числа на четные и нечетные
+        Map<Boolean,List<Integer>> mapOfNumberTypes = evenAndNotEven(IntegerMass);    // разделили числа на четные и нечетные
 
-        List<Integer> Sortedlist = Arrays
-          .stream(IntegerMass)
-          .boxed()
-          .sorted()
-          .collect(Collectors.toList());        // собрали массив в отсортированный лист
+        List<Integer> Sortedlist = Arrays.stream(IntegerMass)
+                .boxed()
+                .sorted()
+                .collect(Collectors.toList());        // собрали массив в отсортированный лист
 
 
-        Optional<String> foundName = findNameInMassive("Вика",new String[]{"Настя","Оля","Вика"});
+        Optional<String> foundName = findNameInMassive("вика",new String[]{"настя","оля","вика"});
 
-        if(foundName.isPresent()){ 
-           System.out.println("имя "+foundName.get()+" есть");
-        }
-        System.out.println(foundName.orElse("Нет такого имени"));
+        System.out.println(foundName.map(a->Character.toUpperCase(a.charAt(0))+a.substring(1)).orElse("нет такого имени"));
 
-        List<Integer> integerList = new ArrayList<>();
+
         Predicate<Integer> isEvenNumber = x -> x % 2==0;
-        for(int g=0;g<10_000;g++){
-            if(isEvenNumber.test(IntegerMass[g])) integerList.add(IntegerMass[g]);         //  добавляем в лист только четные числа
-        }
+        List<Integer> integerList = new ArrayList<>(Arrays.stream(IntegerMass)
+                .filter(isEvenNumber::test)                       //  добавляем в лист только четные числа
+                .boxed()
+                .toList());
 
-        Consumer<Integer> printEvenNums = x -> System.out.println("Even num:"+x);    //  выводим эти четные числа
-        for(int h:integerList){
-         printEvenNums.accept(h);
-        }
+        Consumer<Integer> printEvenNums = x -> System.out.println("Even num:"+x);
+        integerList.stream().forEach(printEvenNums);                 //  выводим эти четные числа
 
         Function<Integer, String> convertToString = g->String.valueOf(g);
-        List<String> listSTRING = new ArrayList<>();
-        for(int h:IntegerMass){
-          listSTRING.add(convertToString.apply(h));    //  конвертируем числа в строки и добавляем в новый лист строк
-        }
+        List<String> listSTRING = Arrays.stream(IntegerMass)
+                .boxed()              //  конвертируем числа в строки и добавляем в новый лист строк
+                .map(convertToString)
+                .toList();
 
-        UnaryOperator<Integer> mapToNegativeInt = x -> -x;
-        for(int h=0;h<IntegerMass.length;h++){ 
-          IntegerMass[h] = mapToNegativeInt.apply(IntegerMass[h]);     // заменяем все числа массива на отрицительные аналоги
-        }
+        IntegerMass = fillMassWithNegativeAnalogs(IntegerMass);
+                                                                 // заменяем все числа массива на отрицительные аналоги
+
 
         Supplier<String> randomName = () -> {
-            if(randomObject.nextInt(6)==3){ 
-              return "выбралось три";
+            if(randomObject.nextInt(6)==3){
+                return "выбралось три";
             }
             return "";
         };
 
-        for(int g=0;g<60;g++){
-            System.out.println(randomName.get());    // если выбирается 3 в диапазоне 0,5  - выводим это
-        }
+        IntStream.range(0,60).forEach(a->System.out.println(randomName.get()));  // если выбирается 3 в диапазоне 0,5  - выводим это
 
-   }
-    static Optional<String> findNameInMassive(String name, String[] names){
-        for(String temp:names){
-            if(temp.equals(name)) return Optional.of(name);
-        }
+
+    }
+
+     static Optional<String> findNameInMassive(String name, String[] names){
+        if(Arrays.stream(names).anyMatch(name::equals)) return Optional.of(name);
         return Optional.empty();
 
- }
+    }
+    static int[] fillMassWithRandomNums(int[] mass){
+        return Arrays.stream(mass)
+                .map(a->randomObject.nextInt(60))
+                .toArray();
+
+    }
+    static int[] fillMassWithNegativeAnalogs(int[] mass){
+        UnaryOperator<Integer> mapToNegativeInt = x -> -x;
+        return Arrays.stream(mass)
+                .map(mapToNegativeInt::apply)
+                .toArray();
+    }
+    static Map<Boolean, List<Integer>> evenAndNotEven (int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.partitioningBy(a->a%2==0));
+    }
+
 }
+
