@@ -33,7 +33,11 @@ import java.util.stream.IntStream;
 * stream api методы:
 * reduce
 *
-*/
+*
+*
+*
+*
+* */
 
 
 public class Main {
@@ -75,7 +79,9 @@ public class Main {
 
         Optional<String> foundName = findNameInMassive("вика",new String[]{"настя","оля","вика"});
 
-        System.out.println(foundName.map(a->Character.toUpperCase(a.charAt(0))+a.substring(1)).orElse("нет такого имени"));
+        System.out.println(foundName
+                .map(a->Character.toUpperCase(a.charAt(0))+a.substring(1))
+                .orElse("нет такого имени"));
 
 
         Predicate<Integer> isEvenNumber = x -> x % 2==0;
@@ -104,13 +110,45 @@ public class Main {
             return "";
         };
 
-        IntStream.range(0,60).forEach(a->System.out.println(randomName.get()));  // если выбирается 3 в диапазоне 0,5  - выводим это
+        IntStream.range(0,60)
+                .forEach(a->System.out.println(randomName.get()));  // если выбирается 3 в диапазоне 0,5  - выводим это
+
+        System.out.println(joinMassOfNumbers(IntegerMass));    //  выводим строку представляющую объединение всех чисел
+
+        Set<Integer> setOfNums = getSetOfUniqueNums(IntegerMass);
+        System.out.println(setOfNums);         //  получаем и выводим сет уникальных значений из нашего массива
+
+        Map<Integer,List<Integer>> groupedNums = groupingByUniqueNums(fillMassWithRandomNums(IntegerMass));
+        groupedNums
+                .entrySet()
+                .stream()
+                .forEach(e-> System.out.println(e.getKey()+": "+e.getValue()));    // получаем листы из повторяющихся значений и выводим
+
+        Map<Integer, String> map = mapOfEvenAndOdd(IntegerMass);
+        groupedNums
+                .entrySet()
+                .stream()
+                .forEach(e-> System.out.println(e.getKey()+": "+e.getValue()));   //  выводим число в качестве ключа, и строку "even/odd" в качестве значение
+
+        System.out.println(findSumOfNums(IntegerMass));        //   вывели сумму всех чисел через Collectors.reducing
+
+        System.out.println(findAveraging(IntegerMass));    // вывели среднее число всех чисел массива через Collectors.averagingInt
+
+        System.out.println(findSumOfNums2(IntegerMass));      //   вывели сумму всех чисел через Collectors.summingInt
+
+        IntSummaryStatistics ins = findAllData(IntegerMass);
+        System.out.println("sum:"+ins.getSum()
+                + ", average: "+ins.getAverage()
+                + ", max:"+ins.getMax()                        // вывели данные по массиву чисел через Collectors.summarizing
+                +", min:"+ins.getMin()+
+                ", count:" +ins.getCount());
 
 
     }
 
      static Optional<String> findNameInMassive(String name, String[] names){
-        if(Arrays.stream(names).anyMatch(name::equals)) return Optional.of(name);
+        if(Arrays.stream(names)
+                .anyMatch(name::equals)) return Optional.of(name);
         return Optional.empty();
 
     }
@@ -131,6 +169,51 @@ public class Main {
                 .boxed()
                 .collect(Collectors.partitioningBy(a->a%2==0));
     }
+    static String joinMassOfNumbers(int[] mass){
+        return Arrays.stream(mass)
+                .boxed().map(String::valueOf)
+                .collect(Collectors.joining(", "));
+    }
+    static Set<Integer> getSetOfUniqueNums(int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.toSet());
+    }
+    static Map<Integer,List<Integer>> groupingByUniqueNums(int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.groupingBy(a->a));
+
+    }
+    static Map<Integer,String> mapOfEvenAndOdd(int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.toMap(Function.identity(),a->a%2==0?"even":"odd"));
+
+    }
+    static int findSumOfNums(int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.reducing(0,(a,b)->a+b));
+    }
+    static double findAveraging(int[] mass){
+        return Arrays.stream(mass)
+                .boxed().collect(Collectors.averagingInt(a->a));
+
+    }
+    static long findSumOfNums2(int[] mass){
+        return Arrays.stream(mass)
+                .boxed().collect(Collectors.summingInt(a->a));
+
+    }
+    static IntSummaryStatistics findAllData(int[] mass){
+        return Arrays.stream(mass)
+                .boxed()
+                .collect(Collectors.summarizingInt(a->a));
+    }
+
 
 }
+
+
 
